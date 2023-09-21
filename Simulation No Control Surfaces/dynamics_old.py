@@ -29,14 +29,14 @@ class FWMAVDynamics:
                                [FWMAV.r0]])   # (12)
         self.true_state = MsgState()
         self._wind = np.array([[0.], [0.], [0.]])  # wind in NED frame in meters/sec
-        self._update_velocity_data_init()
+        self._update_velocity_data()
         # store forces to avoid recalculation in the sensors function
         self._forces = np.array([[0.], [0.], [0.]])
         self._Va = FWMAV.Va0
         self._Va_tail = FWMAV.Va0 + np.linalg.norm(skew(self._state[10:13]) @ FWMAV.r_tail)
-        #self._alpha = 0
-        #self._alpha_tail = 0 - FWMAV.tail_angle
-        #self._beta = 0
+        self._alpha = 0
+        self._alpha_tail = 0 - FWMAV.tail_angle
+        self._beta = 0
     ###################################
     # public functions
     
@@ -99,8 +99,7 @@ class FWMAVDynamics:
         self._state[9][0] = self._state.item(9)/normE
 
         # update the airspeed, angle of attack, and side slip angles using new state
-        self._update_velocity_data(delta, wind)
-        #self._update_velocity_data_init(wind)
+        self._update_velocity_data(wind)
         # update the message class for the true state
         self._update_true_state()
 
@@ -182,18 +181,16 @@ class FWMAVDynamics:
         r_dot = omega_dot[2]
 
         #print(q_dot, FWMAV.gamma5*p*r - FWMAV.gamma6*(p**2 - r**2) + m / FWMAV.Jy)
-        #print(p_dot, FWMAV.gamma1*p*q - FWMAV.gamma2*q*r + FWMAV.gamma3*l + FWMAV.gamma4*n)
-        #print(r_dot, FWMAV.gamma7*p*q - FWMAV.gamma1*q*r + FWMAV.gamma4*l + FWMAV.gamma8*n)
-        # p_dot = FWMAV.gamma1*p*q - FWMAV.gamma2*q*r + FWMAV.gamma3*l + FWMAV.gamma4*n
-        # q_dot = FWMAV.gamma5*p*r - FWMAV.gamma6*(p**2 - r**2) + m / FWMAV.Jy
-        # r_dot = FWMAV.gamma7*p*q - FWMAV.gamma1*q*r + FWMAV.gamma4*l + FWMAV.gamma8*n
+        p_dot = FWMAV.gamma1*p*q - FWMAV.gamma2*q*r + FWMAV.gamma3*l + FWMAV.gamma4*n
+        q_dot = FWMAV.gamma5*p*r - FWMAV.gamma6*(p**2 - r**2) + m / FWMAV.Jy
+        r_dot = FWMAV.gamma7*p*q - FWMAV.gamma1*q*r + FWMAV.gamma4*l + FWMAV.gamma8*n
 
         # collect the derivative of the states
         x_dot = np.array([[north_dot, east_dot, down_dot, u_dot, v_dot, w_dot,
                            e0_dot, e1_dot, e2_dot, e3_dot, p_dot, q_dot, r_dot]]).T
         return x_dot
 
-    def _update_velocity_data_init(self, wind=np.zeros((6,1))):
+    def _update_velocity_data(self, wind=np.zeros((6,1))):
         steady_state = wind[0:3]
         gust = wind[3:6]
         Ri_b = Quaternion2Rotation(self._state[6:10]).T
@@ -206,8 +203,7 @@ class FWMAVDynamics:
         # compute airspeed
         self._Va = np.linalg.norm(v_air)
         v_air_tail = v_air + skew(self._state[10:13]) @ FWMAV.r_tail
-        #self._Va_tail = np.linalg.norm(v_air_tail)[0]
-        self._Va_tail = self._Va
+        self._Va_tail = self._Va #np.linalg.norm(v_air_tail)[0]
         #print(self._Va_tail)
         # compute angle of attack
         if ur == 0:
@@ -217,46 +213,12 @@ class FWMAVDynamics:
         if v_air_tail.item(0) == 0:
             self._alpha_tail = 0
         else:
-            #self._alpha_tail = np.arctan(wr/ur) - FWMAV.tail_angle
             self._alpha_tail = np.arctan(v_air_tail[2,0].item(0)/v_air_tail[0,0].item(0)) - FWMAV.tail_angle
         # compute sideslip angle
         if self._Va == 0:
             self._beta = 0
         else:
             self._beta = np.arcsin(vr/self._Va)
-        
-
-    def _update_velocity_data(self, delta, wind=np.zeros((6,1))):
-        steady_state = wind[0:3]
-        gust = wind[3:6]
-        Ri_b = Quaternion2Rotation(self._state[6:10]).T
-        wind_body_frame = Ri_b @ steady_state + gust
-        # velocity vector relative to the airmass
-        v_air = self._state[3:6] - wind_body_frame
-        ur = v_air.item(0)
-        vr = v_air.item(1)
-        wr = v_air.item(2)
-        # compute airspeed
-        self._Va = np.linalg.norm(v_air)
-        v_air_tail = v_air.T + skew(self._state[10:13]) @ FWMAV.r_tail
-        #print(np.linalg.norm(v_air_tail))
-        #self._Va_tail = np.linalg.norm(v_air_tail)[0]
-        self._Va_tail = np.linalg.norm(v_air_tail)
-        # compute angle of attack
-        if ur == 0:
-            self._alpha = 0
-        else:
-            self._alpha = np.arctan(wr/ur)
-        if v_air_tail.item(0) == 0:
-            self._alpha_tail = 0
-        else:
-            self._alpha_tail = np.arctan(v_air_tail[0,2].item(0)/v_air_tail[0,0].item(0)) - delta.tail_angle
-        # compute sideslip angle
-        if self._Va == 0:
-            self._beta = 0
-        else:
-            self._beta = np.arcsin(vr/self._Va)
-        #print("update")
 
     def _forces_moments(self, delta, time):
         """
@@ -327,7 +289,7 @@ class FWMAVDynamics:
         c_d=a0+a1*np.cos(self._alpha*w)+b1*np.sin(self._alpha*w)+a2*np.cos(2*self._alpha*w)+b2*np.sin(2*self._alpha*w)
         c_l=-1.045-0.7912*np.cos(1.835*self._alpha)+4.43*np.sin(1.835*self._alpha)
         CD_body = c_d
-        CL_body = c_l
+        CL_body = -c_l
 
 
         q_dynamic_tail = 0.5*FWMAV.rho*(self._Va_tail**2)*FWMAV.S_tail        # dynamic pressure --> force term (*S) for lift/drag
@@ -350,13 +312,10 @@ class FWMAVDynamics:
             force_tail =  np.array([[np.cos(self._alpha_tail), -np.sin(self._alpha_tail)], [0,0], [np.sin(self._alpha_tail), np.cos(self._alpha_tail)]]) @ np.array([-F_drag_tail, -F_lift_tail])
             force_body = np.array([[np.cos(self._alpha), -np.sin(self._alpha)], [0,0], [np.sin(self._alpha), np.cos(self._alpha)]]) @ np.array([-F_drag_body, -F_lift_body])
             force_wing = np.array([[np.cos(self._alpha), -np.sin(self._alpha)], [0,0], [np.sin(self._alpha), np.cos(self._alpha)]]) @ np.array([-F_drag_wing, -F_lift_wing])
-            fx = force_wing.item(0) + f_g.item(0) + force_tail.item(0) + force_body.item(0) + 0.1633
+            fx = force_wing.item(0) + f_g.item(0) + force_tail.item(0) + force_body.item(0)
             fy = force_wing.item(1) + f_g.item(1) + force_tail.item(1) + force_body.item(1) 
             fz = force_wing.item(2) + f_g.item(2) + force_tail.item(2) + force_body.item(2)
-            #print(np.linalg.norm(self._state[3:6] + skew(self._state[10:13]) @ FWMAV.r_tail), self._Va, self._state[3:6] + skew(self._state[10:13]) @ FWMAV.r_tail, self._state[3:6])
-            #print(force_wing.item(0), f_g.item(0), force_tail.item(0), force_body.item(0))
-            #print(self._Va, self._Va_tail)
-            #print(50*"-")
+
             M = np.cross(FWMAV.r_tail, force_tail.T) + np.cross(FWMAV.r_body, force_body.T) + np.cross(FWMAV.r_wing, force_wing.T)
             #print(force_tail.item(2), force_body.item(2), (180/(2*np.pi)*self._alpha), force_wing.item(2))
             My = M.item(1)
@@ -398,7 +357,7 @@ class FWMAVDynamics:
         self._forces[0] = fx
         self._forces[1] = fy 
         self._forces[2] = fz
-        #print(fx, fz, My, np.degrees(self._alpha), np.degrees(self._alpha_tail))
+        #print(fx, fy, fz, Mx, My, Mz)
         #return np.array([[fx, fy, fz, 0, 0, 0]]).T
         return np.array([[fx, fy, fz, Mx, My, Mz]]).T
 
@@ -421,4 +380,3 @@ class FWMAVDynamics:
         self.true_state.p = self._state.item(10)
         self.true_state.q = self._state.item(11)
         self.true_state.r = self._state.item(12)
-        

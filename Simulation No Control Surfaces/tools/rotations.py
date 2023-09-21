@@ -135,3 +135,8 @@ def skew(a):
             [0, -a[2], a[1]],
             [a[2], 0, -a[0]],
             [-a[1], a[0], 0]], dtype=object)
+def skew1(a):
+            return np.array([
+            [0, -a[2], a[1]],
+            [a[2], 0, -a[0]],
+            [-a[1], a[0], 0]])
