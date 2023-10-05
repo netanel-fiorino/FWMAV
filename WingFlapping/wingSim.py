@@ -28,8 +28,10 @@ def dual_flap():
     forceArr_right = []
     momentArr_left = []
     momentArr_right = []
-    angleArr_left = []
-    angleArr_right = []
+    phiArr_left = []
+    phiArr_right = []
+    thetaArr_left = []
+    thetaArr_right = []
     time = 0
 
     wing_left = WingDynamics('left')
@@ -41,9 +43,13 @@ def dual_flap():
     
     while time < sim.t_period/2:
         tmp_left = wing_left.force_calc()
-        angleArr_left.append(wing_left._state.item(7))
+        phiArr_left.append(wing_left._state.item(7))
+        thetaArr_left.append(wing_left._state.item(9))
         wing_left.update(time)
+        
         tmp_right = wing_right.force_calc()
+        phiArr_right.append(wing_right._state.item(7))
+        thetaArr_right.append(wing_right._state.item(9))
         wing_right.update(time)
 
         timeArr.append(time)
@@ -60,11 +66,15 @@ def dual_flap():
         # wing_left.updateOmega(omega)
         # wing_right.updateOmega(omega)
 
-    while time < sim.t_period + sim.t_step:
+    while time < 1*sim.t_period + sim.t_step:
         tmp_left = wing_left.force_calc()
-        angleArr_left.append(wing_left._state.item(7))
+        phiArr_left.append(wing_left._state.item(7))
+        thetaArr_left.append(wing_left._state.item(9))
         wing_left.update(time)
+        
         tmp_right = wing_right.force_calc()
+        phiArr_right.append(wing_right._state.item(7))
+        thetaArr_right.append(wing_right._state.item(9))
         wing_right.update(time)
 
         timeArr.append(time)
@@ -131,11 +141,26 @@ def dual_flap():
     ax[1].legend()
     
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
-    # plt.figure()
-    # plt.plot(timeArr, np.degrees(angleArr_left), label = 'phi')
-    # plt.legend()
-    # plt.grid()
-    # plt.show()
+    plt.figure()
+    plt.plot(timeArr, np.degrees(phiArr_left), label = 'phi left')
+    plt.plot(timeArr, np.degrees(thetaArr_left), label = 'theta left')
+    plt.plot(timeArr, np.degrees(phiArr_right), label = 'phi right')
+    plt.plot(timeArr, np.degrees(thetaArr_right), label = 'theta right')
+    plt.legend()
+    plt.grid()
+    
+
+
+    avgFx = sum(forceArr_left[:, 0] + forceArr_right[:, 0])/len(forceArr_left[:, 0])
+    avgFy = sum(forceArr_left[:, 1] + forceArr_right[:, 1])/len(forceArr_left[:, 1])
+    avgFz = sum(forceArr_left[:, 2] + forceArr_right[:, 2])/len(forceArr_left[:, 2])
+    avgMx = sum(momentArr_left[:, 0] + momentArr_right[:, 0])/len(momentArr_left[:, 0])
+    avgMy = sum(momentArr_left[:, 1] + momentArr_right[:, 1])/len(momentArr_left[:, 1])
+    avgMz = sum(momentArr_left[:, 2] + momentArr_right[:, 2])/len(momentArr_left[:, 2])
+    print("Average Forces and Moments over one period:")
+    print(f"Fx: {avgFx}, Fy: {avgFy}, Fz: {avgFz}, Mx: {avgMx}, My: {avgMy}, Mz: {avgMz}")
+
+    plt.show()
 dual_flap()

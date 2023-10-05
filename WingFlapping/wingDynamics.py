@@ -47,7 +47,9 @@ class WingDynamics:
         self.u_inf = np.sqrt(self._state.item(3)**2 + self._state.item(4)**2 + self._state.item(5)**2)
         self.J = self.u_inf/(2*self.amplitude*self.wing_length*self.freq)
         xhat_0 = 0.25
+        #rhat_2**2 = integral 1_0(rhat**2*chat*d(rhat))        rhat = r/R_wing, chat = c(r)/mean(c)
         rhat_2 = np.sqrt(1/3)                   #non dimensional second moment of the wing
+        #rhat_M**2 = integral 1_0(rhat**2*chat**2*d(rhat))        rhat = r/R_wing, chat = c(r)/mean(c)
         rhat_M = np.sqrt(1/3)
         K_PL = -2.109*((self.J + rhat_2)**-0.606) + 4.136
         K_VL = 2.659*((self.J + rhat_2)**-0.666) + -0.344
@@ -75,10 +77,11 @@ class WingDynamics:
         theta_dot = self._state.item(12)
 
         if self.side == 'right':              #side when looking at fwmav, (side along negative y axis)
+            #Dont know if all these should be negatives
             phi = -phi
             phi_dot = -phi_dot
-            theta = -theta
-            theta_dot = -theta_dot
+            theta = theta
+            theta_dot = theta_dot
             psi = -psi
             psi_dot = -psi_dot
         
@@ -109,17 +112,17 @@ class WingDynamics:
                 alpha = np.pi/2
             else:
                 alpha = np.arctan((np.sqrt(np.cross(V_W_i.T, chat_W_i.T) @ np.cross(V_W_i.T, chat_W_i.T).T))/(V_W_i.T @ chat_W_i))
-                print(self.side, np.degrees(alpha))
+                #print(self.side, np.degrees(alpha))
             CL, CD, CM, CR = self.get_aero_coeff(alpha)
             #calculate frames
             i_W = np.array([[1], [0], [0]])
             j_W = np.array([[0], [1], [0]])
-            s_W_i = np.array([[0], [np.dot(r_W_i.T, j_W).item(0)], [-self.wing_chord/2]])
+            s_W_i = np.array([[0], [np.dot(r_W_i.T, j_W).item(0)], [self.wing_chord/4]])
             lhat_W_i = (np.dot(V_W_i.T, i_W))/(np.sqrt(np.dot(V_W_i.T, i_W) * np.dot(V_W_i.T, i_W))) * np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]]) @ (V_W_i)/(np.sqrt(V_W_i.T @ V_W_i))    
             dhat_W_i = np.array([[-1, 0, 0], [0, 0, 0], [0, 0, -1]]) @ (V_W_i)/(np.sqrt(V_W_i.T @ V_W_i))
             if self.side == 'right':
                 j_W = np.array([[0], [1], [0]])
-                s_W_i = np.array([[0], [np.dot(r_W_i.T, j_W).item(0)], [-self.wing_chord/2]])
+                s_W_i = np.array([[0], [np.dot(r_W_i.T, j_W).item(0)], [self.wing_chord/4]])
                 lhat_W_i = (np.dot(V_W_i.T, i_W))/(np.sqrt(np.dot(V_W_i.T, i_W) * np.dot(V_W_i.T, i_W))) * np.array([[0, 0, 1], [0, -1, 0], [-1, 0, 0]]) @ (V_W_i)/(np.sqrt(V_W_i.T @ V_W_i))    
                 dhat_W_i = np.array([[-1, 0, 0], [0, 0, 0], [0, 0, -1]]) @ (V_W_i)/(np.sqrt(V_W_i.T @ V_W_i))
 
@@ -135,9 +138,10 @@ class WingDynamics:
             #print(F_W_trans)
             #print(np.cross(r_W_i.T, F_W_trans_i.T))
             M_W_trans = M_W_trans + (CM * 0.5 * sim.rho * V_W_i.T @ V_W_i * self.wing_chord**2 * delta_r) * j_W + np.cross(r_W_i.T, F_W_trans_i.T).T
-            #M_W_trans = M_W_trans + np.cross(r_W_i.T, F_W_trans_i.T).T
+            #M_W_trans = M_W_trans + (CM * 0.5 * sim.rho * V_W_i.T @ V_W_i * self.wing_chord**2 * delta_r) * j_W
+            #M_W_trans = M_W_trans + 0*np.cross(r_W_i.T, F_W_trans_i.T).T
             M_W_rot = M_W_rot + np.cross(s_W_i.T, F_W_rot_i.T).T
-            #print(self.side, CM)
+            #print(self.side, (s_W_i.T, F_W_rot_i.T))
 
         F_W = F_W_trans + F_W_rot
         M_W = M_W_trans + M_W_rot
