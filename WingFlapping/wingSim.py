@@ -10,8 +10,9 @@ plt.close('all')
 freq = sim.freq #1/t_period   #Hz
 amplitude = sim.amplitude #np.radians(180)
 def run__update_once():
-    wing_left = WingDynamics('left')
-    wing_right = WingDynamics('right')
+    wing_left = WingDynamics(side='left', wing_shape='rectangle')         #rectangle ellipse
+    wing_right = WingDynamics(side='right', wing_shape='rectangle')
+    print(wing_left.wing_shape)
     time = 0
     #omega = amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*time + np.pi/2)
     # wing_left.updateOmega(omega(time))
@@ -34,14 +35,14 @@ def dual_flap():
     thetaArr_right = []
     time = 0
 
-    wing_left = WingDynamics('left')
-    wing_right = WingDynamics('right')
+    wing_left = WingDynamics(side='left', wing_shape='ellipse')               #rectangle ellipse
+    wing_right = WingDynamics(side='right', wing_shape='ellipse')
     
     # omega = np.pi**2*freq*np.cos(2*np.pi*freq*time + np.pi/2)
     # wing_left.updateOmega(omega)
     # wing_right.updateOmega(omega)
     
-    while time < sim.t_period/2:
+    while time < 1*sim.t_period + 1*sim.t_step:
         tmp_left = wing_left.force_calc()
         phiArr_left.append(wing_left._state.item(7))
         thetaArr_left.append(wing_left._state.item(9))
@@ -66,31 +67,31 @@ def dual_flap():
         # wing_left.updateOmega(omega)
         # wing_right.updateOmega(omega)
 
-    while time < 1*sim.t_period + sim.t_step:
-        tmp_left = wing_left.force_calc()
-        phiArr_left.append(wing_left._state.item(7))
-        thetaArr_left.append(wing_left._state.item(9))
-        wing_left.update(time)
+    # while time < 1*sim.t_period + sim.t_step:
+    #     tmp_left = wing_left.force_calc()
+    #     phiArr_left.append(wing_left._state.item(7))
+    #     thetaArr_left.append(wing_left._state.item(9))
+    #     wing_left.update(time)
         
-        tmp_right = wing_right.force_calc()
-        phiArr_right.append(wing_right._state.item(7))
-        thetaArr_right.append(wing_right._state.item(9))
-        wing_right.update(time)
+    #     tmp_right = wing_right.force_calc()
+    #     phiArr_right.append(wing_right._state.item(7))
+    #     thetaArr_right.append(wing_right._state.item(9))
+    #     wing_right.update(time)
 
-        timeArr.append(time)
+    #     timeArr.append(time)
 
-        forceArr_left.append(tmp_left[:3])
-        momentArr_left.append(tmp_left[3:6])
+    #     forceArr_left.append(tmp_left[:3])
+    #     momentArr_left.append(tmp_left[3:6])
 
-        forceArr_right.append(tmp_right[:3])
-        momentArr_right.append(tmp_right[3:6])
+    #     forceArr_right.append(tmp_right[:3])
+    #     momentArr_right.append(tmp_right[3:6])
 
         
         
-        time = time + sim.t_step
-        # omega = amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*time + np.pi/2)
-        # wing_left.updateOmega(omega)
-        # wing_right.updateOmega(omega)
+    #     time = time + sim.t_step
+    #     # omega = amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*time + np.pi/2)
+    #     # wing_left.updateOmega(omega)
+    #     # wing_right.updateOmega(omega)
         
         
     forceArr_left = np.array(forceArr_left) 
@@ -112,7 +113,7 @@ def dual_flap():
     #total
     ax[0].plot(timeArr, forceArr_left[:, 0] + forceArr_right[:, 0], '-', linewidth=3, alpha = 0.75, label = 'fx')
     ax[0].plot(timeArr, forceArr_left[:, 1] + forceArr_right[:, 1], '--', linewidth=3, alpha = 0.75, label = 'fy')
-    ax[0].plot(timeArr, forceArr_left[:, 2] + forceArr_right[:, 2], ':', linewidth=3, alpha = 0.75, label = 'fz')
+    ax[0].plot(timeArr, forceArr_left[:, 2] + forceArr_right[:, 2], '-', linewidth=3, alpha = 0.75, label = 'fz')
     
     ax[0].set_title("Forces from dual flapping")
     ax[0].set_xlabel("Time [s]")
@@ -125,14 +126,14 @@ def dual_flap():
     # ax[1].plot(timeArr, momentArr_left[:, 0], label = 'Mx left')
     # ax[1].plot(timeArr, momentArr_left[:, 1], label = 'My left')
     # ax[1].plot(timeArr, momentArr_left[:, 2], label = 'Mz left')
-    # #right
+    # # # #right
     # ax[1].plot(timeArr, momentArr_right[:, 0], label = 'Mx right')
     # ax[1].plot(timeArr, momentArr_right[:, 1], label = 'My right')
     # ax[1].plot(timeArr, momentArr_right[:, 2], label = 'Mz right')
     #total
     ax[1].plot(timeArr, momentArr_left[:, 0] + momentArr_right[:, 0], '--', linewidth=3, alpha = 0.75, label = 'Mx')
     ax[1].plot(timeArr, momentArr_left[:, 1] + momentArr_right[:, 1], '-', linewidth=3, alpha = 0.75, label = 'My')
-    ax[1].plot(timeArr, momentArr_left[:, 2] + momentArr_right[:, 2], '-', linewidth=3, alpha = 0.75, label = 'Mz')
+    ax[1].plot(timeArr, momentArr_left[:, 2] + momentArr_right[:, 2], '--', linewidth=3, alpha = 0.75, label = 'Mz')
     
     ax[1].set_title("Moments from dual flapping")
     ax[1].set_xlabel("Time [s]")
