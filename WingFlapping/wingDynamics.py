@@ -31,20 +31,42 @@ class WingDynamics:
         self.u_inf = np.sqrt(self._state.item(3)**2 + self._state.item(4)**2 + self._state.item(5)**2)
         self.J = self.u_inf/(2*self.amplitude*self.wing_length*self.freq)
         self.side = side
+        self.rhat2()
+        self.rhatM()
+        
         
 
-    def chord_f(self, r, wingShape):
+    def chord_f(self, r):
         if self.wing_shape == 'rectangle':
             return self.max_chord                                            #rectangle wing
         elif self.wing_shape == 'ellipse':
+            #print(1-r**2/(self.wing_length**2))
             return self.max_chord*np.sqrt(1-r**2/(self.wing_length**2))           #ellipse wing 
     
     def avg_chord(self):
         avg_chord = 0
         for i in range(self.num_elements):
-            avg_chord = avg_chord + self.chord_f((i+0.5)*self.wing_length/self.num_elements, self.wing_shape)/self.num_elements
+            avg_chord = avg_chord + self.chord_f((i+0.5)*self.wing_length/self.num_elements)/self.num_elements
         self.avg_chord = avg_chord        #m      avg chord length
-        
+        #print(avg_chord)
+    
+    def rhat2(self):
+        rhat2 = 0
+        for i in range(1000):
+            deltar = self.wing_length/1000/self.wing_length
+            rhat2 = rhat2 + ((i+1)*deltar)**2*self.chord_f((i+1)*deltar*self.wing_length)/self.avg_chord * deltar
+        self.rhat2 = np.sqrt(rhat2)
+        #print(rhat2)
+
+    def rhatM(self):
+        rhatM = 0
+        for i in range(1000):
+            deltar = self.wing_length/1000/self.wing_length
+            rhatM = rhatM + ((i+1)*deltar)**2*(self.chord_f((i+1)*deltar*self.wing_length)/self.avg_chord)**2 * deltar
+        self.rhatM = np.sqrt(rhatM)
+        #print(rhatM)
+
+
     def update(self, time):
         self._state[10][0] = phi_dot_f(time)
         self._state[11][0] = psi_dot_f(time)
@@ -63,9 +85,11 @@ class WingDynamics:
         self.J = self.u_inf/(2*self.amplitude*self.wing_length*self.freq)
         xhat_0 = 0.25
         #rhat_2**2 = integral 1_0(rhat**2*chat*d(rhat))        rhat = r/R_wing, chat = c(r)/mean(c)
-        rhat_2 = np.sqrt(1/3)                   #non dimensional second moment of the wing
+        #rhat_2 = np.sqrt(1/3)                   #non dimensional second moment of the wing
+        rhat_2 = self.rhat2
         #rhat_M**2 = integral 1_0(rhat**2*chat**2*d(rhat))        rhat = r/R_wing, chat = c(r)/mean(c)
-        rhat_M = np.sqrt(1/3)
+        #rhat_M = np.sqrt(1/3)
+        rhat_M = self.rhatM
         K_PL = -2.109*((self.J + rhat_2)**-0.606) + 4.136
         K_VL = 2.659*((self.J + rhat_2)**-0.666) + -0.344
         K_PD = -0.182*((self.J + rhat_2)**-2.414) + 1.370
@@ -78,8 +102,6 @@ class WingDynamics:
         CD = K_PD*(np.sin(alpha)**2)*np.cos(alpha) + K_VD*(np.sin(alpha)**3)
         CM = K_PM*(np.sin(alpha)**2)*np.cos(alpha) + K_VM*(np.sin(alpha)**2)
         CR = np.pi*(0.75-xhat_0)
-        #print(CL, CD, CM, CR)
-
         return CL, CD, CM, CR
 
     def force_calc(self):
@@ -111,18 +133,19 @@ class WingDynamics:
         M_W_trans = np.array([[0],[0],[0]])
         M_W_rot = np.array([[0],[0],[0]])
 
-        for i in range(self.num_elements): #range(self.num_elements):
+        for i in range(self.num_elements):
             #aero calculations
             delta_r = self.wing_length/self.num_elements
             if self.side == 'left':                                            #side when looking at fwmav, (side along positive y axis)
-                #r_W_i = np.array([[0], [(i+1)*delta_r], [0]])                 #distance from wing pivot to i-th blade element 
-                r_W_i = np.array([[0], [(i+1)*delta_r - delta_r/2], [0]])
+                r_W_i = np.array([[0], [(i+1)*delta_r], [0]])                 #distance from wing pivot to i-th blade element 
+                #r_W_i = np.array([[0], [(i+1)*delta_r - delta_r/2], [0]])
             elif self.side == 'right':
                 delta_r = self.wing_length/self.num_elements
-                #r_W_i = np.array([[0], [-(i+1)*delta_r], [0]])
+                r_W_i = np.array([[0], [-(i+1)*delta_r], [0]])
                 #r_W_i = np.array([[0], [-(i+1)*delta_r + delta_r/2], [-self.wing_chord/4]])
-                r_W_i = np.array([[0], [-(i+1)*delta_r + delta_r/2], [0]])
-            chord_i = self.chord_f(r_W_i.item(1), self.wing_shape)
+                #r_W_i = np.array([[0], [-(i+1)*delta_r + delta_r/2], [0]])
+            chord_i = self.chord_f(r_W_i.item(1))
+            
             V_W_inflow = V_W_body + np.cross(omega_W_wing.T, r_W_i.T).T
             #print(self.side, V_W_inflow)
             V_W_i = np.array([[1, 0, 0],[0, 0, 0],[0, 0, 1]]) @ V_W_inflow

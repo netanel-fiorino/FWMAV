@@ -6,30 +6,28 @@ import numpy as np
 t_period = .05     #sec
 freq = 1/t_period   #Hz
 t_period = 1/freq   #sec (if you want to define the speed by frequency)
-v_free_stream = 0*np.array([[1], [0], [0]])   #m/s
+v_free_stream = 1*np.array([[1], [0], [0]])   #m/s
 amplitude = np.radians(180)         #how many degrees the wing flaps
 wing_length = 0.10      #m
-num_elements = 10                    #how many elements along the wing
-#calculate avg chord
-avg_chord = 0
+num_elements = 50                    #how many elements along the wing
 max_chord = 0.05
 wing_shape = 'rectangle' #'ellipse'                #ellipse or rectangle
 
 beta = np.radians(90)   #stroke plane angle
 phi = np.radians(90)    # initial flapping angle/stroke angle
 psi = 0                 #deviation angle/elevation nagle
-theta = np.radians(40)               #pitch angle/rotation angle
+theta = np.radians(0)               #pitch angle/rotation angle
 def phi_dot_f(t):
     return amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*t + phi) #amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*t + np.pi/2) 
 def psi_dot_f(t):
     return 0
 def theta_dot_f(t):
-    return theta*2*np.pi*freq*np.cos(2*np.pi*freq*t + phi) + theta/2
+    return theta*2*np.pi*freq*np.cos(2*np.pi*freq*t + phi) + 0
     return 0
 
 
 ######################################################################################
                 #   Simulation Parameters
 ######################################################################################
-t_step = t_period/1000
+t_step = t_period/100
 rho = 1.2682

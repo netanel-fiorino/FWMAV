@@ -9,10 +9,9 @@ plt.close('all')
 
 freq = sim.freq #1/t_period   #Hz
 amplitude = sim.amplitude #np.radians(180)
-def run__update_once():
-    wing_left = WingDynamics(side='left', wing_shape='rectangle')         #rectangle ellipse
-    wing_right = WingDynamics(side='right', wing_shape='rectangle')
-    print(wing_left.wing_shape)
+def run_update_once():
+    wing_left = WingDynamics(side='left', wing_shape='ellipse')         #rectangle ellipse
+    wing_right = WingDynamics(side='right', wing_shape='ellipse')
     time = 0
     #omega = amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*time + np.pi/2)
     # wing_left.updateOmega(omega(time))
@@ -63,36 +62,6 @@ def dual_flap():
 
         
         time = time + sim.t_step
-        # omega = np.pi**2*freq*np.cos(2*np.pi*freq*time + np.pi/2) #2*np.pi*freq *np.cos(2*np.pi*freq*time)
-        # wing_left.updateOmega(omega)
-        # wing_right.updateOmega(omega)
-
-    # while time < 1*sim.t_period + sim.t_step:
-    #     tmp_left = wing_left.force_calc()
-    #     phiArr_left.append(wing_left._state.item(7))
-    #     thetaArr_left.append(wing_left._state.item(9))
-    #     wing_left.update(time)
-        
-    #     tmp_right = wing_right.force_calc()
-    #     phiArr_right.append(wing_right._state.item(7))
-    #     thetaArr_right.append(wing_right._state.item(9))
-    #     wing_right.update(time)
-
-    #     timeArr.append(time)
-
-    #     forceArr_left.append(tmp_left[:3])
-    #     momentArr_left.append(tmp_left[3:6])
-
-    #     forceArr_right.append(tmp_right[:3])
-    #     momentArr_right.append(tmp_right[3:6])
-
-        
-        
-    #     time = time + sim.t_step
-    #     # omega = amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*time + np.pi/2)
-    #     # wing_left.updateOmega(omega)
-    #     # wing_right.updateOmega(omega)
-        
         
     forceArr_left = np.array(forceArr_left) 
     forceArr_right = np.array(forceArr_right)
@@ -100,7 +69,7 @@ def dual_flap():
     momentArr_right = np.array(momentArr_right)
 
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    fig.suptitle("Forces and Moments from Dual Flapping")
+    fig.suptitle(f"Forces and Moments from Dual Flapping, wing shape: {wing_left.wing_shape}")
     ##Force Plot
     #left wing
     # ax[0].plot(timeArr, forceArr_left[:, 0], label = 'fx from left')
@@ -145,6 +114,7 @@ def dual_flap():
     #plt.show()
 
     plt.figure()
+    plt.title("Angles")
     plt.plot(timeArr, np.degrees(phiArr_left), label = 'phi left')
     plt.plot(timeArr, np.degrees(thetaArr_left), label = 'theta left')
     plt.plot(timeArr, np.degrees(phiArr_right), label = 'phi right')
@@ -164,4 +134,5 @@ def dual_flap():
     print(f"Fx: {avgFx}, Fy: {avgFy}, Fz: {avgFz}, Mx: {avgMx}, My: {avgMy}, Mz: {avgMz}")
 
     plt.show()
+#run_update_once()
 dual_flap()
