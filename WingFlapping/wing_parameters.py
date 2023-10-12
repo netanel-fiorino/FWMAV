@@ -16,7 +16,7 @@ wing_shape = 'rectangle' #'ellipse'                #ellipse or rectangle
 beta = np.radians(90)   #stroke plane angle
 phi = np.radians(90)    # initial flapping angle/stroke angle
 psi = 0                 #deviation angle/elevation nagle
-theta = np.radians(0)               #pitch angle/rotation angle
+theta = np.radians(45)               #pitch angle/rotation angle
 def phi_dot_f(t):
     return amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*t + phi) #amplitude/2*2*np.pi*freq*np.cos(2*np.pi*freq*t + np.pi/2) 
 def psi_dot_f(t):

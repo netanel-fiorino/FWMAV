@@ -34,8 +34,8 @@ def dual_flap():
     thetaArr_right = []
     time = 0
 
-    wing_left = WingDynamics(side='left', wing_shape='ellipse')               #rectangle ellipse
-    wing_right = WingDynamics(side='right', wing_shape='ellipse')
+    wing_left = WingDynamics(side='left', wing_shape='rectangle')               #rectangle ellipse
+    wing_right = WingDynamics(side='right', wing_shape='rectangle')
     
     # omega = np.pi**2*freq*np.cos(2*np.pi*freq*time + np.pi/2)
     # wing_left.updateOmega(omega)
