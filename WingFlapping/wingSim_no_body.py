@@ -41,7 +41,7 @@ def dual_flap():
     # wing_left.updateOmega(omega)
     # wing_right.updateOmega(omega)
     
-    while time < 1*sim.t_period + 1*sim.t_step:
+    while time < 1*sim.t_period + 3*sim.t_step:
         tmp_left = wing_left.force_calc()
         phiArr_left.append(wing_left._state.item(7))
         thetaArr_left.append(wing_left._state.item(9))
@@ -123,7 +123,8 @@ def dual_flap():
     plt.grid()
     
 
-
+    # print(momentArr_left[:, 1] + momentArr_right[:, 1])
+    print(f"sum my={sum(momentArr_left[:, 1] + momentArr_right[:, 1])}")
     avgFx = sum(forceArr_left[:, 0] + forceArr_right[:, 0])/len(forceArr_left[:, 0])
     avgFy = sum(forceArr_left[:, 1] + forceArr_right[:, 1])/len(forceArr_left[:, 1])
     avgFz = sum(forceArr_left[:, 2] + forceArr_right[:, 2])/len(forceArr_left[:, 2])

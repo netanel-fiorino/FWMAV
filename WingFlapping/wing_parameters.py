@@ -8,13 +8,13 @@ freq = 1/t_period   #Hz
 t_period = 1/freq   #sec (if you want to define the speed by frequency)
 v_free_stream = 0*np.array([[1], [0], [0]])   #m/s
 amplitude = np.radians(180)         #how many degrees the wing flaps
-wing_length = 0.1      #m
+wing_length = 0.12      #m
 num_elements = 20                    #how many elements along the wing
 max_chord = 0.33*wing_length
 wing_shape = 'rectangle' #'ellipse'                #ellipse or rectangle
 
 beta = np.radians(90)   #stroke plane angle
-phi = np.radians(90)    # initial flapping angle/stroke angle
+phi = np.radians(-90)    # initial flapping angle/stroke angle
 psi = 0                 #deviation angle/elevation nagle
 theta = np.radians(0)               #pitch angle/rotation angle
 def phi_dot_f(t):

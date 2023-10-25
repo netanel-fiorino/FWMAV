@@ -10,11 +10,11 @@ from tools.rotations import Euler2Quaternion
 north0 = 00.  # initial north position
 east0 = 0.  # initial east position
 down0 = -0.0  # initial down position
-u0 = 1  # initial velocity along body x-axis
+u0 = 0.  # initial velocity along body x-axis
 v0 = 0.  # initial velocity along body y-axis
-w0 = -1.  # initial velocity along body z-axis
+w0 = 0.  # initial velocity along body z-axis
 phi0 = 0  # initial roll angle
-theta0 = np.radians(0)  # initial pitch angle
+theta0 = np.radians(96)  # initial pitch angle
 psi0 = 0  # initial yaw angle
 p0 = 0  # initial roll rate
 q0 = 0  # initial pitch rate
@@ -44,10 +44,10 @@ rho = 1.2682
 e = 0.9
 AR = (b**2) / S_wing
 gravity = 9.81
-r_tail = np.array([-0.0421, 0, -0.0069]) #length from FWMAV COM to tail COP 
+r_tail = np.array([-0.0421, 0, 0]) #np.array([-0.0421, 0, -0.0069]) #length from FWMAV COM to tail COP 
 r_wing = np.array([-0.0026, 0.03, 5.065e-4])    #length from wing COP to FWMAV COM along body-x-axis
 S_tail = 6.2832e-4      #surface area of tail
-tail_angle = np.radians(9.611)
+tail_angle = np.radians(0)
 S_body = 0.0019
 r_body = np.array([0.0114, 0, 5.065e-4])
 

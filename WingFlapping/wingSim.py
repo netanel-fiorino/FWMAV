@@ -30,10 +30,8 @@ def run_update_once():
 
 def dual_flap():
     timeArr = []
-    forceArr_left = []
-    forceArr_right = []
-    momentArr_left = []
-    momentArr_right = []
+    forceArr = []
+    momentArr = []
     phiArr_left = []
     phiArr_right = []
     thetaArr_left = []
@@ -60,7 +58,7 @@ def dual_flap():
     # wing_left.updateOmega(omega)
     # wing_right.updateOmega(omega)
     
-    while time < 2*sim.t_period + 1*sim.t_step:
+    while time < 5*sim.t_period + 1*sim.t_step:
         # tmp_left = wing_left.force_calc()
         # phiArr_left.append(wing_left._state.item(7))
         # thetaArr_left.append(wing_left._state.item(9))
@@ -90,6 +88,11 @@ def dual_flap():
         heightArr.append(-fwmav._state.item(2))
         forwardArr.append(fwmav._state.item(0))
         pitchArr.append(Quaternion2Euler(fwmav._state[6:10])[1])
+        moments = fwmav._moments
+        momentArr.append([moments.item(0), moments.item(1), moments.item(2)])
+        
+        forces = fwmav._forces
+        forceArr.append([forces.item(0), forces.item(1), forces.item(2)])
         time = time + sim.t_step
         timeArr.append(time)
         fwmav_view.update(fwmav.true_state)
@@ -100,90 +103,51 @@ def dual_flap():
                      sim.t_step)
         if VIDEO is True:
             video.update(time)
-    # forceArr_left = np.array(forceArr_left) 
-    # forceArr_right = np.array(forceArr_right)
-    # momentArr_left = np.array(momentArr_left) 
-    # momentArr_right = np.array(momentArr_right)
-
-    # fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    # fig.suptitle(f"Forces and Moments from Dual Flapping, wing shape: {wing_left.wing_shape}")
-    # ##Force Plot
-    # #left wing
-    # # ax[0].plot(timeArr, forceArr_left[:, 0], label = 'fx from left')
-    # # ax[0].plot(timeArr, forceArr_left[:, 1], label = 'fy from left')
-    # # ax[0].plot(timeArr, forceArr_left[:, 2], label = 'fz from left')
-    # # #right wing
-    # # ax[0].plot(timeArr, forceArr_right[:, 0], label = 'fx from right')
-    # # ax[0].plot(timeArr, forceArr_right[:, 1], label = 'fy from right')
-    # # ax[0].plot(timeArr, forceArr_right[:, 2], label = 'fz from right')
-    # #total
-    # ax[0].plot(timeArr, forceArr_left[:, 0] + forceArr_right[:, 0], '-', linewidth=3, alpha = 0.75, label = 'fx')
-    # ax[0].plot(timeArr, forceArr_left[:, 1] + forceArr_right[:, 1], '--', linewidth=3, alpha = 0.75, label = 'fy')
-    # ax[0].plot(timeArr, forceArr_left[:, 2] + forceArr_right[:, 2], '-', linewidth=3, alpha = 0.75, label = 'fz')
-    
-    # ax[0].set_title("Forces from dual flapping")
-    # ax[0].set_xlabel("Time [s]")
-    # ax[0].set_ylabel("Force [N]")
-    # ax[0].grid()
-    # ax[0].legend()
-
-    # ##Moment Plot
-    # # #left
-    # # ax[1].plot(timeArr, momentArr_left[:, 0], label = 'Mx left')
-    # # ax[1].plot(timeArr, momentArr_left[:, 1], label = 'My left')
-    # # ax[1].plot(timeArr, momentArr_left[:, 2], label = 'Mz left')
-    # # # # #right
-    # # ax[1].plot(timeArr, momentArr_right[:, 0], label = 'Mx right')
-    # # ax[1].plot(timeArr, momentArr_right[:, 1], label = 'My right')
-    # # ax[1].plot(timeArr, momentArr_right[:, 2], label = 'Mz right')
-    # #total
-    # ax[1].plot(timeArr, momentArr_left[:, 0] + momentArr_right[:, 0], '--', linewidth=3, alpha = 0.75, label = 'Mx')
-    # ax[1].plot(timeArr, momentArr_left[:, 1] + momentArr_right[:, 1], '-', linewidth=3, alpha = 0.75, label = 'My')
-    # ax[1].plot(timeArr, momentArr_left[:, 2] + momentArr_right[:, 2], '--', linewidth=3, alpha = 0.75, label = 'Mz')
-    
-    # ax[1].set_title("Moments from dual flapping")
-    # ax[1].set_xlabel("Time [s]")
-    # ax[1].set_ylabel("Moment [Nm]")
-    # ax[1].grid()
-    # ax[1].legend()
-    
-    # plt.tight_layout()
-    # #plt.show()
 
     # plt.figure()
-    # plt.title("Angles")
-    # plt.plot(timeArr, np.degrees(phiArr_left), label = 'phi left')
-    # plt.plot(timeArr, np.degrees(thetaArr_left), label = 'theta left')
-    # plt.plot(timeArr, np.degrees(phiArr_right), label = 'phi right')
-    # plt.plot(timeArr, np.degrees(thetaArr_right), label = 'theta right')
+    # plt.title("height")
+    # plt.plot(timeArr, heightArr, label = 'height')
+    # plt.plot(timeArr, forwardArr, label = 'forward')
     # plt.legend()
     # plt.grid()
 
-    plt.figure()
-    plt.title("height")
-    plt.plot(timeArr, heightArr, label = 'height')
-    plt.plot(timeArr, forwardArr, label = 'forward')
-    plt.legend()
-    plt.grid()
-
-    plt.figure()
-    plt.title("pitch")
-    plt.plot(timeArr, np.degrees(pitchArr), label = 'pitch')
-    plt.legend()
-    plt.grid()
-    plt.show()
-    
-
-
-    # avgFx = sum(forceArr_left[:, 0] + forceArr_right[:, 0])/len(forceArr_left[:, 0])
-    # avgFy = sum(forceArr_left[:, 1] + forceArr_right[:, 1])/len(forceArr_left[:, 1])
-    # avgFz = sum(forceArr_left[:, 2] + forceArr_right[:, 2])/len(forceArr_left[:, 2])
-    # avgMx = sum(momentArr_left[:, 0] + momentArr_right[:, 0])/len(momentArr_left[:, 0])
-    # avgMy = sum(momentArr_left[:, 1] + momentArr_right[:, 1])/len(momentArr_left[:, 1])
-    # avgMz = sum(momentArr_left[:, 2] + momentArr_right[:, 2])/len(momentArr_left[:, 2])
-    # print("Average Forces and Moments over one period:")
-    # print(f"Fx: {avgFx}, Fy: {avgFy}, Fz: {avgFz}, Mx: {avgMx}, My: {avgMy}, Mz: {avgMz}")
-
+    # plt.figure()
+    # plt.title("pitch")
+    # plt.plot(timeArr, np.degrees(pitchArr), label = 'pitch')
+    # plt.legend()
+    # plt.grid()
     # plt.show()
+
+    forceArr = np.array(forceArr)
+    momentArr = np.array(momentArr)
+    
+    plt.figure()
+    plt.title("Moment")
+    plt.plot(timeArr, momentArr[:, 0], label = 'Mx')
+    plt.plot(timeArr, momentArr[:, 1], label = 'My')
+    plt.plot(timeArr, momentArr[:, 2], label = 'Mz')
+    plt.legend()
+    plt.grid()
+
+    
+    plt.figure()
+    plt.title("Force")
+    plt.plot(timeArr, forceArr[:, 0], label = 'Fx')
+    plt.plot(timeArr, forceArr[:, 1], label = 'Fy')
+    plt.plot(timeArr, forceArr[:, 2], label = 'Fz')
+    plt.legend()
+    plt.grid()
+
+
+    avgFx = sum(forceArr[:, 0])/len(forceArr[:, 0])
+    avgFy = sum(forceArr[:, 1])/len(forceArr[:, 1])
+    avgFz = sum(forceArr[:, 2])/len(forceArr[:, 2])
+    avgMx = sum(momentArr[:, 0])/len(momentArr[:, 0])
+    avgMy = sum(momentArr[:, 1])/len(momentArr[:, 1])
+    avgMz = sum(momentArr[:, 2])/len(momentArr[:, 2])
+    print("Average Forces and Moments over one period:")
+    print(f"Fx: {avgFx}, Fy: {avgFy}, Fz: {avgFz}, Mx: {avgMx}, My: {avgMy}, Mz: {avgMz}")
+
+    plt.show()
 #run_update_once()
 dual_flap()
